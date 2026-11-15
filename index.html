@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta http-equiv="refresh" content="600" />
+  <meta http-equiv="Cache-Control" content="no-cache" />
+  <meta name="theme-color" content="#1a0b14" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Yield Degen" />
+  <meta name="application-name" content="Yield Degen" />
+  <meta name="description" content="Justin's very high-risk paper-trading stablecoin yield dashboard, targeting 25%+ APY. Simulation only — no real funds." />
+  <title>Degen Stablecoin Sim (Very High Risk) — Justin</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <style>
+    :root {
+      color-scheme: dark light;
+      --bg: #140814;
+      --bg-elev: #1e1220;
+      --text: #f4eef6;
+      --muted: #b4a3b8;
+      --line: #3a243c;
+      --accent: #f43f5e;
+      --accent-2: #d946ef;
+      --up: #34d399;
+      --down: #fb7185;
+      --warn: #fbbf24;
+      --link: #e879f9;
+      --shadow: 0 0 0 1px var(--line);
+      font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #faf5f8;
+        --bg-elev: #ffffff;
+        --text: #1f1220;
+        --muted: #6b5368;
+        --line: #ead5e4;
+        --accent: #be123c;
+        --accent-2: #a21caf;
+        --up: #047857;
+        --down: #be123c;
+        --warn: #b45309;
+        --link: #a21caf;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 17px;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    header, main, footer {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+    header { padding-top: max(24px, env(safe-area-inset-top)); padding-bottom: 8px; }
+    h1 { font-size: 1.55rem; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 8px; line-height: 1.25; }
+    .sub, .meta, .muted { color: var(--muted); }
+    .sub, .meta, .deadline { margin: 0 0 6px; }
+    .banner {
+      display: inline-block;
+      background: var(--bg-elev);
+      box-shadow: var(--shadow);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 8px 0 16px;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 20px 0 28px;
+    }
+    @media (min-width: 800px) {
+      .metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    .metric {
+      background: var(--bg-elev);
+      box-shadow: var(--shadow);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .metric .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .metric .value { font-size: 1.45rem; font-weight: 650; margin-top: 4px; font-variant-numeric: tabular-nums; word-break: break-word; }
+    .up { color: var(--up); }
+    .down { color: var(--down); }
+    h2 { font-size: 1.15rem; margin: 28px 0 10px; font-weight: 650; }
+    .panel {
+      background: var(--bg-elev);
+      box-shadow: var(--shadow);
+      border-radius: 12px;
+      padding: 8px 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+    th, td { padding: 10px 12px; text-align: left; vertical-align: top; }
+    th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
+    td { border-bottom: 1px solid var(--line); }
+    tr:last-child td { border-bottom: 0; }
+    td.num, th.num { text-align: right; }
+    td.nowrap { white-space: nowrap; }
+    td.tag, .tag { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; color: var(--accent-2); white-space: nowrap; }
+    .risk, td.risk, p.risk { color: var(--warn); font-size: 0.88rem; margin: 0 0 8px; }
+    td.risk { margin: 0; font-weight: 500; }
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .chart-wrap { background: var(--bg-elev); box-shadow: var(--shadow); border-radius: 12px; padding: 12px 8px 8px; }
+    svg.chart { width: 100%; height: auto; display: block; }
+    svg.chart .grid line { stroke: var(--line); stroke-width: 1; }
+    svg.chart .line { fill: none; stroke: var(--accent); stroke-width: 2.25; }
+    svg.chart .area { fill: var(--accent); opacity: 0.12; }
+    svg.chart .dots circle { fill: var(--accent); }
+    svg.chart .axis text { fill: var(--muted); font-size: 10px; }
+    svg.chart .ref { stroke: var(--muted); stroke-dasharray: 4 4; stroke-width: 1; }
+    svg.chart .ref-label { fill: var(--muted); font-size: 10px; }
+    .note { font-size: 0.95rem; color: var(--muted); margin: 10px 0 0; }
+    footer { padding-top: 24px; padding-bottom: max(32px, env(safe-area-inset-bottom)); color: var(--muted); font-size: 0.9rem; }
+    .deadline { margin: 4px 0 0; }
+    .deadline.due { color: var(--warn); }
+    .cards { display: none; }
+    .pos-card, .log-card {
+      background: var(--bg-elev);
+      box-shadow: var(--shadow);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .pos-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; font-weight: 650; }
+    .pos-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .pos-meta { color: var(--muted); margin: 4px 0 10px; font-size: 0.92rem; }
+    .pos-card dl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin: 0; }
+    .pos-card dt { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .pos-card dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .log-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    .log-card time { color: var(--muted); font-size: 0.85rem; }
+    .log-card p { margin: 0; }
+    .install-hint { margin-top: 12px; }
+    .sister-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 10px;
+    }
+    .sister-nav a {
+      display: inline-block;
+      background: var(--bg-elev);
+      box-shadow: var(--shadow);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+    .sister-nav a.current, .sister-nav a[aria-current="page"] {
+      color: var(--bg);
+      background: var(--accent);
+      font-weight: 650;
+    }
+    .vol {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 0.68rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--warn);
+      font-weight: 700;
+      vertical-align: middle;
+    }
+    @media (max-width: 800px) {
+      .desktop-only { display: none; }
+      .cards { display: grid; gap: 10px; }
+      h1 { font-size: 1.45rem; }
+      .metric .value { font-size: 1.35rem; }
+    }
+    @media (min-width: 801px) {
+      body { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="banner">Very high-risk paper trading — no real funds, wallets, or transactions · target 25%+ APY</div>
+    <h1>Degen Stablecoin Sim (Very High Risk)</h1>
+    <nav class="sister-nav" aria-label="All paper portfolios"><a href="https://jtncr.github.io/yield-sim-dashboard/">Low-risk stablecoin sim</a><a href="https://jtncr.github.io/yield-sim-highrisk-dashboard/">High-Yield Stablecoin Sim (Higher Risk)</a><a href="https://jtncr.github.io/yield-sim-degen-dashboard/" class="current" aria-current="page">Degen Stablecoin Sim (Very High Risk)</a></nav>
+    <p class="sub">Justin · Spruce Grove, Alberta · $10,000.00 USDC starting capital · DefiLlama yields</p>
+    <p class="meta">Last updated: Sun, Nov 15, 2026, 4:43:56 PM Mountain Time (UTC-06:00)</p>
+    <p class="meta">Started: Sun, Nov 15, 2026, 4:43:39 PM Mountain Time (UTC-06:00)</p>
+    <p class="deadline">48-hour evaluation deadline: Tue, Nov 17, 2026, 4:43:39 PM Mountain Time (UTC-06:00) (48.0 hours remaining).</p>
+  </header>
+  <main>
+    <section class="metrics" aria-label="Portfolio summary">
+      <div class="metric"><div class="label">Total value</div><div class="value">$9,985.50</div></div>
+      <div class="metric"><div class="label">P&amp;L</div><div class="value down">-$14.50 (-0.145%)</div></div>
+      <div class="metric"><div class="label">Blended APY</div><div class="value">27.448%</div></div>
+      <div class="metric"><div class="label">Projected annual yield</div><div class="value">$2,740.81</div></div>
+    </section>
+
+    <h2>Positions</h2>
+    <div class="panel desktop-only">
+      <table>
+        <thead>
+          <tr>
+            <th>Protocol</th>
+            <th>Chain</th>
+            <th>Pool</th>
+            <th class="num">Allocation</th>
+            <th class="num">Value</th>
+            <th class="num">Effective APY</th>
+            <th class="num">APY base</th>
+            <th class="num">APY reward</th>
+            <th class="num">TVL</th>
+            <th class="num">Accrued</th>
+            <th>Main risk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>GMX</td><td>Arbitrum</td><td><a href="https://defillama.com/yields/pool/0e78f144-5275-532e-8b6c-d4938d0dda83">GMX USDG-USDG (Arbitrum)</a></td><td class='num'>21.51%</td><td class='num'>$2,147.59</td><td class='num'>29.373%</td><td class='num muted'>29.373%</td><td class='num muted'>0.000%</td><td class='num'>$1.7M</td><td class='num'>$0.00</td><td class='risk'>Stable-LP depeg and smart-contract risk</td></tr><tr><td>Veranta</td><td>Base</td><td><a href="https://defillama.com/yields/pool/ae3397ed-1f0f-4aa4-ab62-44413ea8cd9e">Veranta USDC (vault, Base)</a></td><td class='num'>24.51%</td><td class='num'>$2,447.89</td><td class='num'>29.874%</td><td class='num muted'>29.874%</td><td class='num muted'>0.000%</td><td class='num'>$9.5M</td><td class='num'>$0.00</td><td class='risk'>Vault strategy / smart-contract risk</td></tr><tr><td>Morpho</td><td>Monad</td><td><a href="https://defillama.com/yields/pool/fa3241cd-4d8e-51b7-a144-cac0cdc753a4">Morpho Y10KAUSD (Monad)</a></td><td class='num'>8.01%</td><td class='num'>$799.50</td><td class='num'>18.788%</td><td class='num muted'>14.198%</td><td class='num muted'>5.246% <span class='vol'>volatile</span></td><td class='num'>$3.3M</td><td class='num'>$0.00</td><td class='risk'>Morpho curator / smart-contract risk; reward-token price (volatile)</td></tr><tr><td>Pendle</td><td>Ethereum</td><td><a href="https://defillama.com/yields/pool/2c9d004f-649b-4d6c-9efb-d4759f132361">Pendle REUSDE (For buying PT-reUSDe-10DEC2026, Ethereum)</a></td><td class='num'>14.34%</td><td class='num'>$1,432.19</td><td class='num'>18.217%</td><td class='num muted'>18.217%</td><td class='num muted'>0.000%</td><td class='num'>$4.7M</td><td class='num'>$0.00</td><td class='risk'>Pendle fixed-term / implied yield; underlying depeg</td></tr><tr><td>Saturn</td><td>Ethereum</td><td><a href="https://defillama.com/yields/pool/47e72726-3b2b-4fe6-b4a9-a26e1fcd9a50">Saturn SUSDAT (Ethereum)</a></td><td class='num'>11.02%</td><td class='num'>$1,100.77</td><td class='num'>43.870%</td><td class='num muted'>43.870%</td><td class='num muted'>0.000%</td><td class='num'>$36.0M</td><td class='num'>$0.00</td><td class='risk'>Credit / issuer and smart-contract risk</td></tr><tr><td>Hyperliquid HLP</td><td>Hyperliquid</td><td><a href="https://defillama.com/yields/pool/c676790b-ba37-5aa8-9ccf-d9a533daafdc">Hyperliquid HLP USDC (4-day lockup, Hyperliquid)</a></td><td class='num'>8.01%</td><td class='num'>$799.50</td><td class='num'>21.254%</td><td class='num muted'>21.254%</td><td class='num muted'>0.000%</td><td class='num'>$151.6M</td><td class='num'>$0.00</td><td class='risk'>Trading-desk / vault PnL and lockup risk</td></tr><tr><td>Harvest</td><td>Base</td><td><a href="https://defillama.com/yields/pool/062ba2ef-c132-4989-8e67-0ea2ebd37888">Harvest USDC (40 Acres, Base)</a></td><td class='num'>12.60%</td><td class='num'>$1,258.07</td><td class='num'>25.020%</td><td class='num muted'>25.020%</td><td class='num muted'>0.000%</td><td class='num'>$1.7M</td><td class='num'>$0.00</td><td class='risk'>Vault strategy / smart-contract risk</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cards"><article class='pos-card'><div class='pos-head'><a href="https://defillama.com/yields/pool/0e78f144-5275-532e-8b6c-d4938d0dda83">GMX USDG-USDG (Arbitrum)</a><span class='pos-value'>$2,147.59</span></div><div class='pos-meta'>GMX · Arbitrum</div><p class='risk'>Stable-LP depeg and smart-contract risk</p><dl><div><dt>Allocation</dt><dd>21.51%</dd></div><div><dt>Effective APY</dt><dd>29.373%</dd></div><div><dt>APY base</dt><dd>29.373%</dd></div><div><dt>APY reward</dt><dd>0.000%</dd></div><div><dt>TVL</dt><dd>$1.7M</dd></div><div><dt>Accrued</dt><dd>$0.00</dd></div></dl></article><article class='pos-card'><div class='pos-head'><a href="https://defillama.com/yields/pool/ae3397ed-1f0f-4aa4-ab62-44413ea8cd9e">Veranta USDC (vault, Base)</a><span class='pos-value'>$2,447.89</span></div><div class='pos-meta'>Veranta · Base</div><p class='risk'>Vault strategy / smart-contract risk</p><dl><div><dt>Allocation</dt><dd>24.51%</dd></div><div><dt>Effective APY</dt><dd>29.874%</dd></div><div><dt>APY base</dt><dd>29.874%</dd></div><div><dt>APY reward</dt><dd>0.000%</dd></div><div><dt>TVL</dt><dd>$9.5M</dd></div><div><dt>Accrued</dt><dd>$0.00</dd></div></dl></article><article class='pos-card'><div class='pos-head'><a href="https://defillama.com/yields/pool/fa3241cd-4d8e-51b7-a144-cac0cdc753a4">Morpho Y10KAUSD (Monad)</a><span class='pos-value'>$799.50</span></div><div class='pos-meta'>Morpho · Monad</div><p class='risk'>Morpho curator / smart-contract risk; reward-token price (volatile)</p><dl><div><dt>Allocation</dt><dd>8.01%</dd></div><div><dt>Effective APY</dt><dd>18.788%</dd></div><div><dt>APY base</dt><dd>14.198%</dd></div><div><dt>APY reward</dt><dd>5.246% <span class='vol'>volatile</span></dd></div><div><dt>TVL</dt><dd>$3.3M</dd></div><div><dt>Accrued</dt><dd>$0.00</dd></div></dl></article><article class='pos-card'><div class='pos-head'><a href="https://defillama.com/yields/pool/2c9d004f-649b-4d6c-9efb-d4759f132361">Pendle REUSDE (For buying PT-reUSDe-10DEC2026, Ethereum)</a><span class='pos-value'>$1,432.19</span></div><div class='pos-meta'>Pendle · Ethereum</div><p class='risk'>Pendle fixed-term / implied yield; underlying depeg</p><dl><div><dt>Allocation</dt><dd>14.34%</dd></div><div><dt>Effective APY</dt><dd>18.217%</dd></div><div><dt>APY base</dt><dd>18.217%</dd></div><div><dt>APY reward</dt><dd>0.000%</dd></div><div><dt>TVL</dt><dd>$4.7M</dd></div><div><dt>Accrued</dt><dd>$0.00</dd></div></dl></article><article class='pos-card'><div class='pos-head'><a href="https://defillama.com/yields/pool/47e72726-3b2b-4fe6-b4a9-a26e1fcd9a50">Saturn SUSDAT (Ethereum)</a><span class='pos-value'>$1,100.77</span></div><div class='pos-meta'>Saturn · Ethereum</div><p class='risk'>Credit / issuer and smart-contract risk</p><dl><div><dt>Allocation</dt><dd>11.02%</dd></div><div><dt>Effective APY</dt><dd>43.870%</dd></div><div><dt>APY base</dt><dd>43.870%</dd></div><div><dt>APY reward</dt><dd>0.000%</dd></div><div><dt>TVL</dt><dd>$36.0M</dd></div><div><dt>Accrued</dt><dd>$0.00</dd></div></dl></article><article class='pos-card'><div class='pos-head'><a href="https://defillama.com/yields/pool/c676790b-ba37-5aa8-9ccf-d9a533daafdc">Hyperliquid HLP USDC (4-day lockup, Hyperliquid)</a><span class='pos-value'>$799.50</span></div><div class='pos-meta'>Hyperliquid HLP · Hyperliquid</div><p class='risk'>Trading-desk / vault PnL and lockup risk</p><dl><div><dt>Allocation</dt><dd>8.01%</dd></div><div><dt>Effective APY</dt><dd>21.254%</dd></div><div><dt>APY base</dt><dd>21.254%</dd></div><div><dt>APY reward</dt><dd>0.000%</dd></div><div><dt>TVL</dt><dd>$151.6M</dd></div><div><dt>Accrued</dt><dd>$0.00</dd></div></dl></article><article class='pos-card'><div class='pos-head'><a href="https://defillama.com/yields/pool/062ba2ef-c132-4989-8e67-0ea2ebd37888">Harvest USDC (40 Acres, Base)</a><span class='pos-value'>$1,258.07</span></div><div class='pos-meta'>Harvest · Base</div><p class='risk'>Vault strategy / smart-contract risk</p><dl><div><dt>Allocation</dt><dd>12.60%</dd></div><div><dt>Effective APY</dt><dd>25.020%</dd></div><div><dt>APY base</dt><dd>25.020%</dd></div><div><dt>APY reward</dt><dd>0.000%</dd></div><div><dt>TVL</dt><dd>$1.7M</dd></div><div><dt>Accrued</dt><dd>$0.00</dd></div></dl></article></div>
+    <p class="note">Effective APY uses organic <code>apyBase</code> plus a 12% haircut on reward APY (reward APY is marked <span class="vol">volatile</span> when present). This is a very high-risk book targeting 25%+ blended APY. Simulated gas is deducted (about $0.50 on L2s, $3.00 on Ethereum). Entry/move costs currently sitting in open positions: $11.50. Max 25% per pool, 5–7 pools. TVL floor $1M (prefer $5M+). Rebalance if a pool beats a sleeve by 3.0 pp and move costs break even within 14 days.</p>
+
+    <h2>Value over time</h2>
+    <div class="chart-wrap"><svg class="chart" viewBox="0 0 720 240" role="img" aria-label="Portfolio value over time">
+  <g class="grid"><line x1="56" y1="204.00" x2="704" y2="204.00" /><line x1="56" y1="157.00" x2="704" y2="157.00" /><line x1="56" y1="110.00" x2="704" y2="110.00" /><line x1="56" y1="63.00" x2="704" y2="63.00" /><line x1="56" y1="16.00" x2="704" y2="16.00" /></g>
+  <line class="ref" x1="56" y1="42.86" x2="704" y2="42.86" /><text class="ref-label" x="704" y="36.86" text-anchor="end">$10,000.00 start</text>
+  <path class="area" d="M56.00,144.74 L704.00,177.14 L704.00,204.00 L56.00,204.00 Z" />
+  <path class="line" d="M56.00,144.74 L704.00,177.14" />
+  <g class="dots"><circle cx="56.00" cy="144.74" r="3.5" /><circle cx="704.00" cy="177.14" r="3.5" /></g>
+  <g class="axis"><text x="48" y="208.00" text-anchor="end">$9,982.60</text><text x="48" y="161.00" text-anchor="end">$9,987.68</text><text x="48" y="114.00" text-anchor="end">$9,992.75</text><text x="48" y="67.00" text-anchor="end">$9,997.83</text><text x="48" y="20.00" text-anchor="end">$10,002.90</text><text x="56" y="230" text-anchor="start">Nov 15, 4:43 PM</text><text x="704" y="230" text-anchor="end">Nov 15, 4:43 PM</text></g>
+</svg></div>
+    <p class="note">Chart times are Mountain Time (America/Edmonton). The dashed line is the $10,000.00 starting capital. Early P&amp;L is usually slightly negative because simulated gas is paid up front.</p>
+
+    <h2>Transaction and rebalance log</h2>
+    <div class="panel desktop-only">
+      <table>
+        <thead>
+          <tr><th>Time (Mountain)</th><th>Action</th><th>Reason</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class='nowrap'>Sun, Nov 15, 2026, 4:43:56 PM Mountain Time (UTC-06:00)</td><td class='tag'>rebalance_skip</td><td>Did not move Hyperliquid HLP USDC (4-day lockup, Hyperliquid) (21.254%) to Pendle SUSD3 (For buying PT-sUSD3-17DEC2026, Ethereum) (26.666%, +5.412 pp): $3.50 move costs would take 29.5 days to break even (limit 14 days).</td></tr><tr><td class='nowrap'>Sun, Nov 15, 2026, 4:43:56 PM Mountain Time (UTC-06:00)</td><td class='tag'>rebalance_skip</td><td>Did not move Pendle REUSDE (For buying PT-reUSDe-10DEC2026, Ethereum) (18.217%) to Pendle SUSD3 (For buying PT-sUSD3-17DEC2026, Ethereum) (26.666%, +8.448 pp): $6.00 move costs would take 18.1 days to break even (limit 14 days).</td></tr><tr><td class='nowrap'>Sun, Nov 15, 2026, 4:43:56 PM Mountain Time (UTC-06:00)</td><td class='tag'>rebalance_skip</td><td>Did not move Morpho Y10KAUSD (Monad) (18.788%) to Pendle SUSD3 (For buying PT-sUSD3-17DEC2026, Ethereum) (26.666%, +7.878 pp): $3.50 move costs would take 20.3 days to break even (limit 14 days).</td></tr><tr><td class='nowrap'>Sun, Nov 15, 2026, 4:43:56 PM Mountain Time (UTC-06:00)</td><td class='tag'>rebalance</td><td>Moved Pendle SUSDFR (For buying PT-sUSDfr-28JAN2027, Ethereum) (24.326%) to GMX USDG-USDG (Arbitrum) (29.373%, +5.047 pp). Simulated move costs $3.50 break even in 11.8 days (threshold 3.00 pp and 14 days).</td></tr><tr><td class='nowrap'>Sun, Nov 15, 2026, 4:43:56 PM Mountain Time (UTC-06:00)</td><td class='tag'>accrue</td><td>Accrued yield at current effective APYs: Pendle SUSDFR (For buying PT-sUSDfr-28JAN2027, Ethereum): +$0.000283 over 0.0002d @ 24.326%; Veranta USDC (vault, Base): +$0.000396 over 0.0002d @ 29.874%; Morpho Y10KAUSD (Monad): +$0.000081 over 0.0002d @ 18.788%; Pendle REUSDE (For buying PT-reUSDe-10DEC2026, Ethereum): +$0.000141 over 0.0002d @ 18.217%; Saturn SUSDAT (Ethereum): +$0.000261 over 0.0002d @ 43.870%; Hyperliquid HLP USDC (4-day lockup, Hyperliquid): +$0.000092 over 0.0002d @ 21.254%; Harvest USDC (40 Acres, Base): +$0.000170 over 0.0002d @ 25.020%</td></tr><tr><td class='nowrap'>Sun, Nov 15, 2026, 4:43:40 PM Mountain Time (UTC-06:00)</td><td class='tag'>init</td><td>Opened a $10,000.00 USDC very high-risk (degen) paper portfolio (target 25%+ APY) across 7 stablecoin pools. Simulated entry gas deducted. Pendle SUSDFR (For buying PT-sUSDfr-28JAN2027, Ethereum) on Ethereum: 21.53% sleeve, gross $2,154.09, minus $3.00 simulated gas, net $2,151.09 at 24.326% effective APY (base 24.326%, reward 0.000%), TVL $6.4M. Veranta USDC (vault, Base) on Base: 24.51% sleeve, gross $2,448.39, minus $0.50 simulated gas, net $2,447.89 at 29.874% effective APY (base 29.874%, reward 0.000%), TVL $9.5M. Morpho Y10KAUSD (Monad) on Monad: 8.00% sleeve, gross $800.00, minus $0.50 simulated gas, net $799.50 at 18.788% effective APY (base 14.198%, reward 5.246%), TVL $3.3M. Pendle REUSDE (For buying PT-reUSDe-10DEC2026, Ethereum) on Ethereum: 14.34% sleeve, gross $1,435.19, minus $3.00 simulated gas, net $1,432.19 at 18.217% effective APY (base 18.217%, reward 0.000%), TVL $4.7M. Saturn SUSDAT (Ethereum) on Ethereum: 11.02% sleeve, gross $1,103.77, minus $3.00 simulated gas, net $1,100.77 at 43.870% effective APY (base 43.870%, reward 0.000%), TVL $36.0M. Hyperliquid HLP USDC (4-day lockup, Hyperliquid) on Hyperliquid: 8.00% sleeve, gross $800.00, minus $0.50 simulated gas, net $799.50 at 21.254% effective APY (base 21.254%, reward 0.000%), TVL $151.6M. Harvest USDC (40 Acres, Base) on Base: 12.59% sleeve, gross $1,258.57, minus $0.50 simulated gas, net $1,258.07 at 25.020% effective APY (base 25.020%, reward 0.000%), TVL $1.7M.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cards"><article class='log-card'><div class='log-top'><span class='tag'>rebalance_skip</span><time>Sun, Nov 15, 2026, 4:43:56 PM Mountain Time (UTC-06:00)</time></div><p>Did not move Hyperliquid HLP USDC (4-day lockup, Hyperliquid) (21.254%) to Pendle SUSD3 (For buying PT-sUSD3-17DEC2026, Ethereum) (26.666%, +5.412 pp): $3.50 move costs would take 29.5 days to break even (limit 14 days).</p></article><article class='log-card'><div class='log-top'><span class='tag'>rebalance_skip</span><time>Sun, Nov 15, 2026, 4:43:56 PM Mountain Time (UTC-06:00)</time></div><p>Did not move Pendle REUSDE (For buying PT-reUSDe-10DEC2026, Ethereum) (18.217%) to Pendle SUSD3 (For buying PT-sUSD3-17DEC2026, Ethereum) (26.666%, +8.448 pp): $6.00 move costs would take 18.1 days to break even (limit 14 days).</p></article><article class='log-card'><div class='log-top'><span class='tag'>rebalance_skip</span><time>Sun, Nov 15, 2026, 4:43:56 PM Mountain Time (UTC-06:00)</time></div><p>Did not move Morpho Y10KAUSD (Monad) (18.788%) to Pendle SUSD3 (For buying PT-sUSD3-17DEC2026, Ethereum) (26.666%, +7.878 pp): $3.50 move costs would take 20.3 days to break even (limit 14 days).</p></article><article class='log-card'><div class='log-top'><span class='tag'>rebalance</span><time>Sun, Nov 15, 2026, 4:43:56 PM Mountain Time (UTC-06:00)</time></div><p>Moved Pendle SUSDFR (For buying PT-sUSDfr-28JAN2027, Ethereum) (24.326%) to GMX USDG-USDG (Arbitrum) (29.373%, +5.047 pp). Simulated move costs $3.50 break even in 11.8 days (threshold 3.00 pp and 14 days).</p></article><article class='log-card'><div class='log-top'><span class='tag'>accrue</span><time>Sun, Nov 15, 2026, 4:43:56 PM Mountain Time (UTC-06:00)</time></div><p>Accrued yield at current effective APYs: Pendle SUSDFR (For buying PT-sUSDfr-28JAN2027, Ethereum): +$0.000283 over 0.0002d @ 24.326%; Veranta USDC (vault, Base): +$0.000396 over 0.0002d @ 29.874%; Morpho Y10KAUSD (Monad): +$0.000081 over 0.0002d @ 18.788%; Pendle REUSDE (For buying PT-reUSDe-10DEC2026, Ethereum): +$0.000141 over 0.0002d @ 18.217%; Saturn SUSDAT (Ethereum): +$0.000261 over 0.0002d @ 43.870%; Hyperliquid HLP USDC (4-day lockup, Hyperliquid): +$0.000092 over 0.0002d @ 21.254%; Harvest USDC (40 Acres, Base): +$0.000170 over 0.0002d @ 25.020%</p></article><article class='log-card'><div class='log-top'><span class='tag'>init</span><time>Sun, Nov 15, 2026, 4:43:40 PM Mountain Time (UTC-06:00)</time></div><p>Opened a $10,000.00 USDC very high-risk (degen) paper portfolio (target 25%+ APY) across 7 stablecoin pools. Simulated entry gas deducted. Pendle SUSDFR (For buying PT-sUSDfr-28JAN2027, Ethereum) on Ethereum: 21.53% sleeve, gross $2,154.09, minus $3.00 simulated gas, net $2,151.09 at 24.326% effective APY (base 24.326%, reward 0.000%), TVL $6.4M. Veranta USDC (vault, Base) on Base: 24.51% sleeve, gross $2,448.39, minus $0.50 simulated gas, net $2,447.89 at 29.874% effective APY (base 29.874%, reward 0.000%), TVL $9.5M. Morpho Y10KAUSD (Monad) on Monad: 8.00% sleeve, gross $800.00, minus $0.50 simulated gas, net $799.50 at 18.788% effective APY (base 14.198%, reward 5.246%), TVL $3.3M. Pendle REUSDE (For buying PT-reUSDe-10DEC2026, Ethereum) on Ethereum: 14.34% sleeve, gross $1,435.19, minus $3.00 simulated gas, net $1,432.19 at 18.217% effective APY (base 18.217%, reward 0.000%), TVL $4.7M. Saturn SUSDAT (Ethereum) on Ethereum: 11.02% sleeve, gross $1,103.77, minus $3.00 simulated gas, net $1,100.77 at 43.870% effective APY (base 43.870%, reward 0.000%), TVL $36.0M. Hyperliquid HLP USDC (4-day lockup, Hyperliquid) on Hyperliquid: 8.00% sleeve, gross $800.00, minus $0.50 simulated gas, net $799.50 at 21.254% effective APY (base 21.254%, reward 0.000%), TVL $151.6M. Harvest USDC (40 Acres, Base) on Base: 12.59% sleeve, gross $1,258.57, minus $0.50 simulated gas, net $1,258.07 at 25.020% effective APY (base 25.020%, reward 0.000%), TVL $1.7M.</p></article></div>
+  </main>
+  <footer>
+    Simulation only. Yields are taken from the public DefiLlama API and will change. This is not financial advice.
+    This page refreshes automatically every 10 minutes.
+    <p class="install-hint">On Android Chrome, tap the menu and choose <strong>Add to Home screen</strong> for a one-tap app icon. This icon is red-purple and named Yield Degen, so it will sit beside the low-risk and higher-risk apps. The page contains only paper-trading numbers — no wallets or secrets.</p>
+    <p class="install-hint">Public URL: <a href="https://jtncr.github.io/yield-sim-degen-dashboard/">https://jtncr.github.io/yield-sim-degen-dashboard/</a></p>
+    <p class="install-hint">All three books:</p>
+    <nav class="sister-nav" aria-label="All paper portfolios"><a href="https://jtncr.github.io/yield-sim-dashboard/">Low-risk stablecoin sim</a><a href="https://jtncr.github.io/yield-sim-highrisk-dashboard/">High-Yield Stablecoin Sim (Higher Risk)</a><a href="https://jtncr.github.io/yield-sim-degen-dashboard/" class="current" aria-current="page">Degen Stablecoin Sim (Very High Risk)</a></nav>
+  </footer>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>
